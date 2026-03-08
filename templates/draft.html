@@ -146,11 +146,29 @@
     #drafted-panel {
       display: none; position: fixed; bottom: 4.5rem; right: 1.5rem;
       background: var(--dark-2); border: 1px solid var(--border);
-      border-radius: 2px; width: 260px; max-height: 420px; overflow-y: auto;
+      border-radius: 2px; width: 340px; max-height: 560px; overflow-y: auto;
       z-index: 50; box-shadow: 0 8px 32px rgba(0,0,0,0.5); padding: 1rem;
     }
     #drafted-panel h3 { font-family: 'Cinzel', serif; font-size: 0.72rem; letter-spacing: 0.15em; color: var(--gold); margin-bottom: 0.8rem; }
-    #drafted-list { font-size: 0.85rem; line-height: 1.8; color: var(--text-muted); }
+    #drafted-image-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 0.8rem;
+    }
+    .drafted-img-wrap { position: relative; aspect-ratio: 488/680; border-radius: 4px; overflow: hidden; background: var(--dark-3); }
+    .drafted-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .drafted-img-wrap .fallback-name {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      padding: 4px; font-size: 0.6rem; text-align: center; color: var(--text-muted); line-height: 1.2;
+    }
+    .drafted-img-wrap:hover .card-tooltip {
+      opacity: 1; pointer-events: auto;
+    }
+    .card-tooltip {
+      position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+      background: var(--dark); border: 1px solid var(--border); color: var(--text);
+      font-size: 0.68rem; white-space: nowrap; padding: 3px 6px; border-radius: 2px;
+      opacity: 0; pointer-events: none; transition: opacity 0.15s; z-index: 10;
+      margin-bottom: 4px;
+    }
 
     /* ROUND CHANGE FLASH */
     #round-flash {
@@ -188,8 +206,9 @@
   <!-- Drafted sidebar -->
   <button id="drafted-toggle" onclick="toggleDrafted()">📋 My Pool (<span id="drafted-count">0</span>)</button>
   <div id="drafted-panel">
-    <h3>My Drafted Cards</h3>
-    <div id="drafted-list">None yet.</div>
+    <h3>My Pool — <span id="drafted-count-inner">0</span> cards</h3>
+    <div id="drafted-image-grid"></div>
+    <div id="drafted-list" style="font-size:0.75rem;color:var(--text-muted);border-top:1px solid var(--border);padding-top:0.6rem;"></div>
   </div>
 
   <!-- Waiting overlay -->
@@ -340,18 +359,46 @@
       setTimeout(() => el.classList.remove('show'), 2200);
     }
 
-    function updateDrafted(cards) {
+    async function updateDrafted(cards) {
       draftedCards = cards;
-      document.getElementById('drafted-count').textContent = cards.length;
-      if (cards.length === 0) {
-        document.getElementById('drafted-list').textContent = 'None yet.';
+      const n = cards.length;
+      document.getElementById('drafted-count').textContent = n;
+      document.getElementById('drafted-count-inner').textContent = n;
+
+      const grid = document.getElementById('drafted-image-grid');
+      const list = document.getElementById('drafted-list');
+
+      if (n === 0) {
+        grid.innerHTML = '';
+        list.textContent = 'None yet.';
         return;
       }
+
+      // Render image grid (newest card first)
+      const reversed = [...cards].reverse();
+      // Build grid HTML with placeholders first
+      grid.innerHTML = reversed.map((name, i) => `
+        <div class="drafted-img-wrap" id="dw-${i}">
+          <div class="fallback-name">${name}</div>
+          <div class="card-tooltip">${name}</div>
+        </div>`).join('');
+
+      // Load images async
+      reversed.forEach(async (name, i) => {
+        const wrap = document.getElementById('dw-' + i);
+        if (!wrap) return;
+        const imgUrl = await getCardImage(name);
+        if (imgUrl) {
+          wrap.innerHTML = `<img src="${imgUrl}" alt="${name}" loading="lazy"/><div class="card-tooltip">${name}</div>`;
+        }
+      });
+
+      // Text list at bottom
       const counts = {};
       cards.forEach(c => counts[c] = (counts[c]||0)+1);
       const lines = Object.entries(counts).sort((a,b)=>a[0].localeCompare(b[0]))
         .map(([n,q]) => `${q} x ${n}`);
-      document.getElementById('drafted-list').innerHTML = lines.map(l => `<div>${l}</div>`).join('');
+      list.innerHTML = lines.map(l => `<div>${l}</div>`).join('');
     }
 
     function toggleDrafted() {
@@ -370,9 +417,9 @@
       document.getElementById('hdr-pack').textContent = data.pack_size;
       document.getElementById('player-badge').textContent = data.player_name || `Player ${data.player_index+1}`;
       picksNeeded = data.picks_needed;
-      updateDrafted(data.drafted);
       document.getElementById('status-text').textContent = `Pick ${picksNeeded} cards from the pack below`;
       document.getElementById('status-text').classList.add('active');
+      await updateDrafted(data.drafted);
       await renderHand(data.hand);
     });
 

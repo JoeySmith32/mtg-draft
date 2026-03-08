@@ -23,10 +23,13 @@ def make_draft(card_list: list[str], num_players: int = 4) -> dict:
     """
     random.shuffle(card_list)
 
-    # Build 3 packs of 15 per player  →  12 packs total for 4 players
+    # Build 3 packs of 14 per player -> 12 packs total for 4 players = 168 cards used
+    # 180 cards accepted but 12 are randomly excluded (already shuffled above)
     packs_per_player = 3
-    pack_size = 15
+    pack_size = 14
     total_packs = num_players * packs_per_player  # 12
+    cards_needed = total_packs * pack_size        # 168
+    card_list = card_list[:cards_needed]          # drop the extra 12 silently
 
     all_packs = []
     for i in range(total_packs):
