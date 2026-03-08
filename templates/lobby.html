@@ -215,7 +215,7 @@
     });
 
     socket.on('draft_started', () => {
-      window.location.href = '/draft/' + DRAFT_ID + '/play';
+      window.location.href = '/draft/' + DRAFT_ID + '/play?seat=' + myIndex;
     });
 
     socket.on('error', data => alert(data.msg));

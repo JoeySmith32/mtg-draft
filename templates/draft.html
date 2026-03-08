@@ -208,6 +208,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.min.js"></script>
   <script>
     const DRAFT_ID = "{{ draft_id }}";
+    // Read seat index from URL query string (?seat=N) — set by lobby on redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    const MY_SEAT = parseInt(urlParams.get('seat') ?? '-1');
     const socket = io();
 
     let currentHand = [];
@@ -358,7 +361,7 @@
 
     // ---- Socket events ----
     socket.on('connect', () => {
-      socket.emit('join_draft', { draft_id: DRAFT_ID });
+      socket.emit('join_draft', { draft_id: DRAFT_ID, player_index: MY_SEAT });
     });
 
     socket.on('hand_update', async data => {

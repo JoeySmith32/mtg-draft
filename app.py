@@ -238,10 +238,19 @@ def on_join_draft(data):
         return
     sid = request.sid
     join_room(draft_id)
-    idx = get_player_index(draft, sid)
+
+    # Accept seat index passed from the play page (survives page reload)
+    idx = data.get("player_index")
     if idx is None:
-        emit("error", {"msg": "You are not in this draft"})
+        emit("error", {"msg": "Missing player_index"})
         return
+    idx = int(idx)
+    if idx < 0 or idx >= draft["num_players"] or draft["players"][idx] is None:
+        emit("error", {"msg": "Invalid seat"})
+        return
+
+    # Update sid so the new connection maps to the right seat
+    draft["players"][idx]["sid"] = sid
     _push_hand_to(draft, idx)
 
 
