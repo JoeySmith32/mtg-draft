@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MTG Pick-2 Draft</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #c9a84c;
+      --gold-light: #e8c96a;
+      --dark: #0d0d0f;
+      --dark-2: #141418;
+      --dark-3: #1c1c22;
+      --border: rgba(201,168,76,0.25);
+      --text: #e8dfc8;
+      --text-muted: #8a7f6a;
+    }
+
+    body {
+      background: var(--dark);
+      color: var(--text);
+      font-family: 'Crimson Pro', Georgia, serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(201,168,76,0.04) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(120,80,160,0.05) 0%, transparent 60%);
+    }
+
+    .crown {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      filter: drop-shadow(0 0 12px rgba(201,168,76,0.6));
+    }
+
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+      margin-bottom: 0.3rem;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: var(--text-muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 2.5rem;
+      font-weight: 300;
+    }
+
+    .card {
+      background: var(--dark-2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 2rem 2.5rem;
+      width: 100%;
+      max-width: 620px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(201,168,76,0.1);
+      position: relative;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -1px; left: 10%; right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    .error {
+      background: rgba(180,40,40,0.15);
+      border: 1px solid rgba(180,40,40,0.4);
+      color: #f08080;
+      padding: 0.75rem 1rem;
+      border-radius: 2px;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    label {
+      display: block;
+      font-family: 'Cinzel', serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.6rem;
+    }
+
+    .hint {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 0.8rem;
+      line-height: 1.5;
+      font-style: italic;
+    }
+
+    textarea {
+      width: 100%;
+      background: var(--dark-3);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      padding: 1rem;
+      resize: vertical;
+      min-height: 260px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(201,168,76,0.08);
+    }
+
+    textarea::placeholder { color: var(--text-muted); }
+
+    .counter {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: right;
+      margin-top: 0.4rem;
+      margin-bottom: 1.5rem;
+      font-family: 'Courier New', monospace;
+    }
+
+    .counter .ok { color: #6dbd7a; }
+    .counter .warn { color: #e8c96a; }
+    .counter .bad { color: #f08080; }
+
+    button[type="submit"] {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 0.9rem 2rem;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button[type="submit"]::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--gold);
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+    }
+
+    button[type="submit"]:hover::before { transform: translateX(0); }
+    button[type="submit"]:hover { color: var(--dark); }
+    button[type="submit"] span { position: relative; z-index: 1; }
+
+    .rules {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      text-align: center;
+    }
+
+    .rule-item .num {
+      font-family: 'Cinzel', serif;
+      font-size: 1.6rem;
+      color: var(--gold);
+      display: block;
+    }
+
+    .rule-item .desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="crown">⚜</div>
+  <h1>MTG Pick-2 Draft</h1>
+  <p class="subtitle">4 Players · 3 Rounds · Pick 2 from 15</p>
+
+  <div class="card">
+    {% if error %}
+    <div class="error">⚠ {{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/create">
+      <label for="card_list">Card Pool — 180 Cards</label>
+      <p class="hint">One card per line. Accepts plain names or "1 x Card Name" format.</p>
+      <textarea id="card_list" name="card_list" placeholder="1 x Lightning Bolt&#10;2 x Counterspell&#10;Llanowar Elves&#10;..." spellcheck="false"></textarea>
+      <div class="counter" id="counter">0 / 180 cards</div>
+      <button type="submit"><span>⚔ Begin the Draft</span></button>
+    </form>
+
+    <div class="rules">
+      <div class="rule-item">
+        <span class="num">4</span>
+        <span class="desc">Players</span>
+      </div>
+      <div class="rule-item">
+        <span class="num">3</span>
+        <span class="desc">Rounds</span>
+      </div>
+      <div class="rule-item">
+        <span class="num">30</span>
+        <span class="desc">Cards each</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ta = document.getElementById('card_list');
+    const counter = document.getElementById('counter');
+
+    function countCards(text) {
+      let total = 0;
+      text.split('\n').forEach(line => {
+        line = line.trim();
+        if (!line) return;
+        const m = line.match(/^(\d+)\s*x\s+/i);
+        total += m ? parseInt(m[1]) : 1;
+      });
+      return total;
+    }
+
+    ta.addEventListener('input', () => {
+      const n = countCards(ta.value);
+      const cls = n === 180 ? 'ok' : n > 180 ? 'bad' : 'warn';
+      counter.innerHTML = `<span class="${cls}">${n} / 180 cards</span>`;
+    });
+  </script>
+</body>
+</html>

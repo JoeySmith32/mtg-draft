@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Draft Results</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold: #c9a84c; --gold-light: #e8c96a;
+      --dark: #0d0d0f; --dark-2: #141418; --dark-3: #1c1c22;
+      --border: rgba(201,168,76,0.25); --text: #e8dfc8; --text-muted: #8a7f6a;
+    }
+    body {
+      background: var(--dark); color: var(--text);
+      font-family: 'Crimson Pro', serif; min-height: 100vh; padding: 2rem;
+      background-image: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.05) 0%, transparent 50%);
+    }
+    h1 {
+      font-family: 'Cinzel', serif; font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 900;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      text-align: center; margin-bottom: 0.4rem; letter-spacing: 0.08em;
+    }
+    .subtitle { text-align: center; color: var(--text-muted); font-size: 0.9rem; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 3rem; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; max-width: 1200px; margin: 0 auto 3rem; }
+
+    .player-card {
+      background: var(--dark-2); border: 1px solid var(--border); border-radius: 2px;
+      overflow: hidden; position: relative;
+    }
+    .player-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .player-header {
+      padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .player-name { font-family: 'Cinzel', serif; font-size: 1rem; letter-spacing: 0.1em; color: var(--gold); }
+    .card-count { font-size: 0.8rem; color: var(--text-muted); }
+
+    .pool-text {
+      padding: 1.2rem 1.5rem; font-family: 'Courier New', monospace;
+      font-size: 0.82rem; line-height: 1.9; color: var(--text);
+      max-height: 420px; overflow-y: auto; white-space: pre-wrap;
+      border-bottom: 1px solid var(--border);
+    }
+    .pool-text::-webkit-scrollbar { width: 4px; }
+    .pool-text::-webkit-scrollbar-track { background: var(--dark-3); }
+    .pool-text::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .copy-btn {
+      width: 100%; background: transparent; border: none; color: var(--text-muted);
+      font-family: 'Cinzel', serif; font-size: 0.68rem; letter-spacing: 0.15em;
+      text-transform: uppercase; padding: 0.8rem; cursor: pointer; transition: all 0.2s;
+    }
+    .copy-btn:hover { background: var(--dark-3); color: var(--gold); }
+
+    .new-draft-area { text-align: center; }
+    .new-draft-btn {
+      display: inline-block; background: transparent; border: 1px solid var(--gold);
+      color: var(--gold); font-family: 'Cinzel', serif; font-size: 0.85rem;
+      letter-spacing: 0.2em; text-transform: uppercase; padding: 1rem 3rem;
+      cursor: pointer; border-radius: 2px; text-decoration: none; transition: all 0.2s;
+      position: relative; overflow: hidden;
+    }
+    .new-draft-btn::before { content: ''; position: absolute; inset: 0; background: var(--gold); transform: translateX(-100%); transition: transform 0.25s; }
+    .new-draft-btn:hover::before { transform: translateX(0); }
+    .new-draft-btn:hover { color: var(--dark); }
+    .new-draft-btn span { position: relative; z-index: 1; }
+  </style>
+</head>
+<body>
+  <h1>⚔ Draft Complete</h1>
+  <p class="subtitle">All picks are in — here are the pools</p>
+
+  <div class="grid">
+    {% for pool in pools %}
+    <div class="player-card">
+      <div class="player-header">
+        <div class="player-name">{{ pool.name }}</div>
+        <div class="card-count">{{ pool.cards | length }} cards</div>
+      </div>
+      <div class="pool-text" id="pool-{{ loop.index0 }}">{{ pool.pool }}</div>
+      <button class="copy-btn" onclick="copyPool({{ loop.index0 }}, '{{ pool.name }}')">
+        📋 Copy {{ pool.name }}'s Pool
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="new-draft-area">
+    <a href="/" class="new-draft-btn"><span>⚔ New Draft</span></a>
+  </div>
+
+  <script>
+    function copyPool(idx, name) {
+      const text = document.getElementById('pool-' + idx).textContent.trim();
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelectorAll('.copy-btn')[idx];
+        btn.textContent = '✓ Copied!';
+        setTimeout(() => btn.textContent = `📋 Copy ${name}'s Pool`, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

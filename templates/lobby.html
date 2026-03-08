@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Draft Lobby</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold: #c9a84c; --gold-light: #e8c96a;
+      --dark: #0d0d0f; --dark-2: #141418; --dark-3: #1c1c22;
+      --border: rgba(201,168,76,0.25); --text: #e8dfc8; --text-muted: #8a7f6a;
+    }
+    body {
+      background: var(--dark); color: var(--text);
+      font-family: 'Crimson Pro', serif; min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 2rem;
+      background-image: radial-gradient(ellipse at 30% 30%, rgba(201,168,76,0.04) 0%, transparent 60%);
+    }
+    h1 {
+      font-family: 'Cinzel', serif; font-size: clamp(1.4rem, 4vw, 2.2rem);
+      font-weight: 900; letter-spacing: 0.08em;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      text-align: center; margin-bottom: 0.3rem;
+    }
+    .draft-id {
+      font-family: 'Courier New', monospace; font-size: 0.8rem;
+      color: var(--text-muted); letter-spacing: 0.15em; text-align: center; margin-bottom: 2rem;
+    }
+    .share-url {
+      background: var(--dark-3); border: 1px solid var(--border);
+      border-radius: 2px; padding: 0.7rem 1rem;
+      font-family: 'Courier New', monospace; font-size: 0.78rem;
+      color: var(--text-muted); word-break: break-all; margin-bottom: 2rem;
+      max-width: 580px; width: 100%; text-align: center; cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .share-url:hover { border-color: var(--gold); color: var(--text); }
+    .copy-hint { font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: -1.5rem; margin-bottom: 2rem; }
+
+    .panel {
+      background: var(--dark-2); border: 1px solid var(--border);
+      border-radius: 2px; padding: 2rem; width: 100%; max-width: 580px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      position: relative;
+    }
+    .panel::before {
+      content: ''; position: absolute; top: -1px; left: 10%; right: 10%;
+      height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    /* Name entry */
+    #name-section label {
+      display: block; font-family: 'Cinzel', serif; font-size: 0.7rem;
+      letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.6rem;
+    }
+    #name-section input {
+      width: 100%; background: var(--dark-3); border: 1px solid var(--border);
+      border-radius: 2px; color: var(--text); font-family: 'Crimson Pro', serif;
+      font-size: 1.1rem; padding: 0.7rem 1rem; outline: none; transition: border-color 0.2s;
+    }
+    #name-section input:focus { border-color: var(--gold); }
+    #join-btn {
+      margin-top: 1rem; width: 100%; background: transparent; border: 1px solid var(--gold);
+      color: var(--gold); font-family: 'Cinzel', serif; font-size: 0.78rem;
+      letter-spacing: 0.18em; text-transform: uppercase; padding: 0.8rem;
+      cursor: pointer; border-radius: 2px; transition: all 0.2s; position: relative; overflow: hidden;
+    }
+    #join-btn::before { content: ''; position: absolute; inset: 0; background: var(--gold); transform: translateX(-100%); transition: transform 0.25s; }
+    #join-btn:hover::before { transform: translateX(0); }
+    #join-btn:hover { color: var(--dark); }
+    #join-btn span { position: relative; z-index: 1; }
+
+    /* Player slots */
+    #slots-section { display: none; }
+    #slots-section h2 {
+      font-family: 'Cinzel', serif; font-size: 0.75rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 1.2rem;
+    }
+    .slots { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin-bottom: 1.5rem; }
+    .slot {
+      background: var(--dark-3); border: 1px solid var(--border); border-radius: 2px;
+      padding: 0.9rem 1.1rem; display: flex; align-items: center; gap: 0.8rem;
+      transition: all 0.3s;
+    }
+    .slot.filled { border-color: rgba(201,168,76,0.5); }
+    .slot.me { border-color: var(--gold); box-shadow: 0 0 12px rgba(201,168,76,0.15); }
+    .slot-icon { font-size: 1.2rem; }
+    .slot-name { font-size: 1rem; }
+    .slot-name.empty { color: var(--text-muted); font-style: italic; font-size: 0.88rem; }
+
+    .waiting {
+      text-align: center; color: var(--text-muted); font-style: italic;
+      font-size: 0.95rem; margin-bottom: 1rem;
+    }
+    .waiting .dots::after {
+      content: ''; animation: dots 1.5s infinite;
+    }
+    @keyframes dots {
+      0%   { content: ''; } 33%  { content: '.'; }
+      66%  { content: '..'; } 100% { content: '...'; }
+    }
+
+    #start-btn {
+      display: none; width: 100%; background: var(--gold); border: none;
+      color: var(--dark); font-family: 'Cinzel', serif; font-size: 0.9rem;
+      letter-spacing: 0.2em; text-transform: uppercase; padding: 1rem;
+      cursor: pointer; border-radius: 2px; font-weight: 700;
+      transition: all 0.2s; box-shadow: 0 4px 20px rgba(201,168,76,0.3);
+    }
+    #start-btn:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+    .status-msg { text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 0.8rem; }
+  </style>
+</head>
+<body>
+  <h1>⚔ Draft Lobby</h1>
+  <div class="draft-id">Draft ID: {{ draft_id }}</div>
+
+  <div class="share-url" id="share-url" onclick="copyUrl()">Loading URL…</div>
+  <div class="copy-hint">← Click to copy &amp; share with friends</div>
+
+  <div class="panel">
+    <!-- Step 1: enter name -->
+    <div id="name-section">
+      <label for="player-name">Your Name</label>
+      <input type="text" id="player-name" maxlength="24" placeholder="Enter your name…" autofocus/>
+      <button id="join-btn" onclick="joinLobby()"><span>Join Draft</span></button>
+    </div>
+
+    <!-- Step 2: wait for others -->
+    <div id="slots-section">
+      <h2>Players — <span id="joined-count">0</span> / 4 Joined</h2>
+      <div class="slots" id="slots">
+        <div class="slot" id="slot-0"><span class="slot-icon">👤</span><span class="slot-name empty" id="slot-name-0">Waiting…</span></div>
+        <div class="slot" id="slot-1"><span class="slot-icon">👤</span><span class="slot-name empty" id="slot-name-1">Waiting…</span></div>
+        <div class="slot" id="slot-2"><span class="slot-icon">👤</span><span class="slot-name empty" id="slot-name-2">Waiting…</span></div>
+        <div class="slot" id="slot-3"><span class="slot-icon">👤</span><span class="slot-name empty" id="slot-name-3">Waiting…</span></div>
+      </div>
+      <p class="waiting" id="waiting-msg">Waiting for players <span class="dots"></span></p>
+      <button id="start-btn" onclick="startDraft()">⚔ Start Draft</button>
+      <p class="status-msg" id="status-msg"></p>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.min.js"></script>
+  <script>
+    const DRAFT_ID = "{{ draft_id }}";
+    const socket = io();
+    let myIndex = null;
+    let isHost = false;
+
+    document.getElementById('share-url').textContent = window.location.origin + '/draft/' + DRAFT_ID + '/lobby';
+
+    function copyUrl() {
+      const url = window.location.origin + '/draft/' + DRAFT_ID + '/lobby';
+      navigator.clipboard.writeText(url).then(() => {
+        document.getElementById('share-url').textContent = '✓ Copied!';
+        setTimeout(() => document.getElementById('share-url').textContent = url, 2000);
+      });
+    }
+
+    document.getElementById('player-name').addEventListener('keydown', e => {
+      if (e.key === 'Enter') joinLobby();
+    });
+
+    function joinLobby() {
+      const name = document.getElementById('player-name').value.trim();
+      if (!name) { document.getElementById('player-name').focus(); return; }
+      socket.emit('join_lobby', { draft_id: DRAFT_ID, name });
+      document.getElementById('name-section').style.display = 'none';
+      document.getElementById('slots-section').style.display = 'block';
+    }
+
+    function startDraft() {
+      socket.emit('start_draft', { draft_id: DRAFT_ID });
+    }
+
+    socket.on('your_index', data => {
+      myIndex = data.index;
+      if (myIndex === 0) { isHost = true; }
+    });
+
+    socket.on('lobby_update', data => {
+      const players = data.players;
+      let count = 0;
+      players.forEach((name, i) => {
+        const el = document.getElementById('slot-name-' + i);
+        const slot = document.getElementById('slot-' + i);
+        if (name) {
+          count++;
+          el.textContent = name;
+          el.classList.remove('empty');
+          slot.classList.add('filled');
+          if (i === myIndex) slot.classList.add('me');
+        } else {
+          el.textContent = 'Waiting…';
+          el.classList.add('empty');
+          slot.classList.remove('filled', 'me');
+        }
+      });
+      document.getElementById('joined-count').textContent = count;
+
+      if (data.all_joined) {
+        document.getElementById('waiting-msg').style.display = 'none';
+        if (isHost) {
+          document.getElementById('start-btn').style.display = 'block';
+        } else {
+          document.getElementById('status-msg').textContent = 'All players ready! Waiting for host to start…';
+        }
+      }
+    });
+
+    socket.on('draft_started', () => {
+      window.location.href = '/draft/' + DRAFT_ID + '/play';
+    });
+
+    socket.on('error', data => alert(data.msg));
+  </script>
+</body>
+</html>
