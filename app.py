@@ -104,7 +104,7 @@ def build_pool_text(drafted_cards: list[str]) -> str:
     counts: dict[str, int] = {}
     for c in drafted_cards:
         counts[c] = counts.get(c, 0) + 1
-    lines = [f"{qty} x {name}" for name, qty in sorted(counts.items())]
+    lines = [f"{qty} {name}" for name, qty in sorted(counts.items())]
     return "\n".join(lines)
 
 

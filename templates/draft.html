@@ -441,7 +441,7 @@
       const counts = {};
       cards.forEach(c => counts[c] = (counts[c]||0)+1);
       const lines = Object.entries(counts).sort((a,b)=>a[0].localeCompare(b[0]))
-        .map(([n,q]) => `${q} x ${n}`);
+        .map(([n,q]) => `${q} ${n}`);
       list.innerHTML = lines.map(l => `<div>${l}</div>`).join('');
     }
 
