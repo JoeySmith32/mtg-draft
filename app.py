@@ -122,24 +122,26 @@ def create_draft():
     raw = request.form.get("card_list", "")
     lines = [l.strip() for l in raw.strip().splitlines() if l.strip()]
 
-    # Parse "1 x Card Name" or plain "Card Name"
+    # Parse formats: "1x Card Name", "1 x Card Name", "1 Card Name", "Card Name"
+    import re
     card_list = []
     for line in lines:
-        if " x " in line:
-            parts = line.split(" x ", 1)
+        # Match "NxName", "N x Name", or "N Name" at the start
+        m = re.match(r'^(\d+)\s*x\s+(.+)$', line, re.IGNORECASE)
+        if not m:
+            m = re.match(r'^(\d+)\s+(.+)$', line)
+        if m:
             try:
-                qty = int(parts[0].strip())
-                name = parts[1].strip()
+                qty = int(m.group(1))
+                name = m.group(2).strip()
                 card_list.extend([name] * qty)
+                continue
             except ValueError:
-                card_list.append(line)
-        else:
-            card_list.append(line)
+                pass
+        card_list.append(line)
 
-    if len(card_list) < 180:
-        return render_template("index.html", error=f"Need 180 cards, got {len(card_list)}.")
-
-    card_list = card_list[:180]
+    if len(card_list) < 168:
+        return render_template("index.html", error=f"Need at least 168 cards, got {len(card_list)}.")
     draft = make_draft(card_list, num_players=4)
     draft_id = draft["id"]
     drafts[draft_id] = draft

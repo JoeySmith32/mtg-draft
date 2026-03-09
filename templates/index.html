@@ -213,10 +213,10 @@
     {% endif %}
 
     <form method="POST" action="/create">
-      <label for="card_list">Card Pool — 180 Cards</label>
-      <p class="hint">One card per line. Accepts plain names or "1 x Card Name" format.</p>
-      <textarea id="card_list" name="card_list" placeholder="1 x Lightning Bolt&#10;2 x Counterspell&#10;Llanowar Elves&#10;..." spellcheck="false"></textarea>
-      <div class="counter" id="counter">0 / 180 cards</div>
+      <label for="card_list">Card Pool — 168+ Cards</label>
+      <p class="hint">One card per line. Minimum 168 cards. Accepts: <code>Card Name</code>, <code>1x Card Name</code>, <code>1 x Card Name</code>, or <code>1 Card Name</code>.</p>
+      <textarea id="card_list" name="card_list" placeholder="Lightning Bolt&#10;1x Counterspell&#10;2 x Llanowar Elves&#10;2 Birds of Paradise&#10;..." spellcheck="false"></textarea>
+      <div class="counter" id="counter">0 / 168 cards</div>
       <button type="submit"><span>⚔ Begin the Draft</span></button>
     </form>
 
@@ -230,7 +230,7 @@
         <span class="desc">Rounds</span>
       </div>
       <div class="rule-item">
-        <span class="num">42</span>
+        <span class="num">30</span>
         <span class="desc">Cards each</span>
       </div>
     </div>
@@ -245,7 +245,8 @@
       text.split('\n').forEach(line => {
         line = line.trim();
         if (!line) return;
-        const m = line.match(/^(\d+)\s*x\s+/i);
+        // Match "Nx", "N x", or "N " prefix
+        const m = line.match(/^(\d+)\s*x\s+/i) || line.match(/^(\d+)\s+(\S)/);
         total += m ? parseInt(m[1]) : 1;
       });
       return total;
@@ -253,8 +254,9 @@
 
     ta.addEventListener('input', () => {
       const n = countCards(ta.value);
-      const cls = n === 180 ? 'ok' : n > 180 ? 'bad' : 'warn';
-      counter.innerHTML = `<span class="${cls}">${n} / 180 cards</span>`;
+      const cls = n >= 168 ? 'ok' : 'warn';
+      const over = n > 168 ? ` (+${n - 168} will be randomly excluded)` : '';
+      counter.innerHTML = `<span class="${cls}">${n} / 168 min${over}</span>`;
     });
   </script>
 </body>
